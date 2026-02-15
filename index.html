@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WEB HUB</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        /* 1️⃣ WARNA & BACKGROUND */
+        body {
+            background-color: #050510;
+            /* Static Galaxy Background - No Animation */
+            background-image:
+                radial-gradient(white, rgba(255,255,255,.2) 1px, transparent 2px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px),
+                radial-gradient(white, rgba(255,255,255,.1) 1px, transparent 2px);
+            background-size: 550px 550px, 350px 350px, 250px 250px;
+            background-position: 0 0, 40 60, 130 270;
+            background-attachment: fixed;
+            color: #e2e8f0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        /* Glassmorphism Classes */
+        .glass {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .glass-strong {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Gold & Green Accents */
+        .text-gold { color: #FFD700; }
+        .bg-gold { background-color: #FFD700; }
+        .border-gold { border-color: #FFD700; }
+        
+        .text-accent-green { color: #4ADE80; }
+        .bg-accent-green { background-color: #4ADE80; }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in-right {
+            animation: slideInRight 0.3s ease-out forwards;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Horizontal Scroll for Rules */
+        .horizontal-scroll {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            gap: 1rem;
+            padding-bottom: 0.5rem;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .horizontal-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .horizontal-scroll > div {
+            scroll-snap-align: center;
+            flex: 0 0 85%;
+        }
+
+        /* Modal Transitions */
+        .modal {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+        }
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform: scale(0.95);
+        }
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen pb-20">
+
+    <!-- 2️⃣ HAMBURGER MENU & HEADER -->
+    <header class="fixed top-0 left-0 right-0 z-40 glass px-4 py-3 flex justify-between items-center shadow-lg">
+        <button id="menu-btn" class="text-gold text-2xl p-1 active:scale-95 transition-transform" aria-label="Menu">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
+        
+        <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-yellow-200 to-yellow-500 tracking-wider">
+            WEB HUB
+        </h1>
+
+        <!-- 5️⃣ REKOMENDASI WEBSITE (Refresh Button) -->
+        <button id="refresh-btn" class="text-accent-green text-2xl p-1 active:rotate-180 transition-all duration-500" aria-label="Refresh Recommendations">
+            🔄
+        </button>
+    </header>
+
+    <!-- Sidebar Overlay & Menu -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 z-40 hidden transition-opacity duration-300"></div>
+    <aside id="sidebar" class="fixed top-0 left-0 h-full w-[280px] glass-strong z-50 transform -translate-x-full transition-transform duration-300 flex flex-col shadow-2xl">
+        <div class="p-6 border-b border-white/10 flex justify-between items-center">
+            <span class="text-gold font-bold text-xl">MENU</span>
+            <button id="close-sidebar-btn" class="text-gray-400 hover:text-white">✕</button>
+        </div>
+        <nav class="flex-1 overflow-y-auto py-4">
+            <ul class="space-y-2 px-4">
+                <li>
+                    <button onclick="openRules()" class="w-full text-left px-4 py-3 rounded-lg hover:bg-white/10 text-gray-200 transition flex items-center gap-3">
+                        <span>📜</span> Peraturan
+                    </button>
+                </li>
+                <li>
+                    <button onclick="openSubmitWeb()" class="w-full text-left px-4 py-3 rounded-lg hover:bg-white/10 text-gray-200 transition flex items-center gap-3">
+                        <span>🚀</span> Submit Website
+                    </button>
+                </li>
+                <li>
+                    <button onclick="openSuggestionBox()" class="w-full text-left px-4 py-3 rounded-lg hover:bg-white/10 text-gray-200 transition flex items-center gap-3">
+                        <span>📬</span> Kotak Saran
+                    </button>
+                </li>
+                <li>
+                    <button onclick="openAdminLogin()" class="w-full text-left px-4 py-3 rounded-lg hover:bg-white/10 text-gold transition flex items-center gap-3 font-semibold">
+                        <span>🔒</span> Admin
+                    </button>
+                </li>
+            </ul>
+        </nav>
+        <div class="p-4 border-t border-white/10 text-center text-xs text-gray-500">
+            Web Hub v1.0 <br> &copy; 2023
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="pt-24 px-4 max-w-7xl mx-auto">
+        <!-- Website Grid Container -->
+        <div id="website-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Cards will be injected here by JS -->
+        </div>
+        
+        <div id="loading-indicator" class="hidden text-center py-10 text-gray-400">
+            Memuat...
+        </div>
+
+        <div id="empty-state" class="hidden text-center py-20 text-gray-400">
+            <p class="text-xl">Belum ada website.</p>
+        </div>
+    </main>
+
+    <!-- 3️⃣ POP-UP PERATURAN (User View) -->
+    <div id="modal-rules" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
+        <div class="modal-content glass w-full max-w-md rounded-2xl overflow-hidden shadow-2xl">
+            <div class="p-6">
+                <h2 class="text-2xl font-bold text-gold mb-4 text-center">Peraturan Web Hub</h2>
+                
+                <!-- 8️⃣ RULES AREA (Horizontal Swipe) -->
+                <div id="rules-container" class="horizontal-scroll py-4 mb-4">
+                    <!-- Rules injected here -->
+                </div>
+                
+                <div class="flex justify-center mt-4">
+                    <button onclick="closeRules()" class="bg-accent-green text-black font-bold py-3 px-8 rounded-full shadow-lg active:scale-95 transition-transform">
+                        Saya Mengerti
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4️⃣ SUBMIT WEBSITE FORM -->
+    <div id="modal-submit" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
+        <div class="modal-content glass-strong w-full max-w-lg rounded-xl shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center p-4 border-b border-white/10">
+                <h3 class="text-xl font-bold text-white">Submit Website</h3>
+                <button onclick="closeModal('modal-submit')" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            
+            <div class="p-4 overflow-y-auto custom-scrollbar">
+                <div class="bg-red-500/20 border border-red-500/50 text-red-200 p-3 rounded-lg text-sm mb-4 text-center">
+                    ⚠️ Jangan upload website orang lain tanpa izin.
+                </div>
+
+                <form id="submit-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Nama Website</label>
+                        <input type="text" id="sub-name" class="w-full bg-slate-800/50 border border-white/10 rounded p-2 text-white focus:border-gold outline-none" placeholder="Contoh: Google">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Kategori</label>
+                        <select id="sub-cat" class="w-full bg-slate-800/50 border border-white/10 rounded p-2 text-white focus:border-gold outline-none">
+                            <option value="Tools">Tools</option>
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="Education">Education</option>
+                            <option value="Social">Social</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">URL Website</label>
+                        <input type="url" id="sub-url" class="w-full bg-slate-800/50 border border-white/10 rounded p-2 text-white focus:border-gold outline-none" placeholder="https://...">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Deskripsi</label>
+                        <textarea id="sub-desc" rows="3" class="w-full bg-slate-800/50 border border-white/10 rounded p-2 text-white focus:border-gold outline-none" placeholder="Jelaskan singkat..."></textarea>
+                    </div>
+                    
+                    <!-- Email Publisher (Posisi di atas upload gambar) -->
+                    <div>
+                        <label class="block text-sm text-gold mb-1 font-semibold">Email Publisher (Wajib)</label>
+                        <input type="email" id="sub-email" class="w-full bg-slate-800/50 border border-white/10 rounded p-2 text-white focus:border-gold outline-none" placeholder="email@contoh.com">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Upload Gambar</label>
+                        <input type="file" id="sub-img" accept="image/*" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-slate-700 file:text-white hover:file:bg-slate-600">
+                    </div>
+                </form>
+            </div>
+            
+            <div class="p-4 border-t border-white/10">
+                <button id="btn-submit-web" class="w-full py-3 rounded-lg font-bold text-center transition bg-gray-600 text-gray-300 cursor-not-allowed" disabled>
+                    SUBMIT
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6️⃣ KOTAK SARAN -->
+    <div id="modal-suggestion" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
+        <div class="modal-content glass-strong w-full max-w-md rounded-xl shadow-2xl">
+            <div class="flex justify-between items-center p-4 border-b border-white/10">
+                <h3 class="text-xl font-bold text-white">Kotak Saran</h3>
+                <button onclick="closeModal('modal-suggestion')" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            <div class="p-4">
+                <textarea id="sugg-text" class="w-full bg-slate-800/50 border border-white/10 rounded p-3 text-white focus:border-accent-green outline-none min-h-[150px]" placeholder="Tulis saranmu di sini... (Min 100 karakter)"></textarea>
+                <div class="text-right text-xs text-gray-400 mt-1">
+                    <span id="char-count">0</span>/3000
+                </div>
+            </div>
+            <div class="p-4">
+                <button id="btn-submit-sugg" class="w-full bg-gray-600 text-gray-300 py-2 rounded-lg font-bold transition cursor-not-allowed" disabled>
+                    Kirim Saran
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7️⃣ ADMIN LOGIN -->
+    <div id="modal-login" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
+        <div class="modal-content glass-strong w-full max-w-sm rounded-xl shadow-2xl p-6">
+            <h3 class="text-xl font-bold text-gold text-center mb-6">Admin Access</h3>
+            <div class="relative mb-4">
+                <input type="password" id="admin-pass" class="w-full bg-slate-800/50 border border-white/10 rounded p-3 text-white focus:border-gold outline-none pr-10" placeholder="Password">
+                <button id="toggle-pass" class="absolute right-3 top-3 text-gray-400 hover:text-white">👁️</button>
+            </div>
+            <button id="btn-login" class="w-full bg-gold text-black font-bold py-3 rounded-lg shadow-lg active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                LOGIN
+            </button>
+            <button onclick="closeModal('modal-login')" class="w-full text-gray-400 text-sm mt-4 hover:text-white">Batal</button>
+        </div>
+    </div>
+
+    <!-- 7️⃣ ADMIN PANEL -->
+    <div id="modal-admin" class="modal fixed inset-0 z-50 flex items-center justify-center p-2 bg-black/90">
+        <div class="modal-content glass-strong w-full max-w-4xl h-[95vh] rounded-xl shadow-2xl flex flex-col overflow-hidden">
+            <!-- Admin Header -->
+            <div class="flex justify-between items-center p-4 border-b border-white/10 bg-slate-900/50">
+                <h3 class="text-xl font-bold text-gold">Admin Dashboard</h3>
+                <button onclick="closeModal('modal-admin')" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            
+            <!-- Admin Tabs -->
+            <div class="flex border-b border-white/10 overflow-x-auto">
+                <button onclick="switchAdminTab('websites')" class="admin-tab px-6 py-3 text-sm font-bold text-white border-b-2 border-gold bg-white/5">Websites</button>
+                <button onclick="switchAdminTab('rules')" class="admin-tab px-6 py-3 text-sm font-bold text-gray-400 hover:text-white">Rules</button>
+                <button onclick="switchAdminTab('suggestions')" class="admin-tab px-6 py-3 text-sm font-bold text-gray-400 hover:text-white">Saran</button>
+            </div>
+
+            <!-- Admin Content -->
+            <div class="flex-1 overflow-y-auto p-4 custom-scrollbar bg-black/20">
+                
+                <!-- Website Management -->
+                <div id="admin-websites" class="admin-section space-y-4">
+                    <!-- Website items injected here -->
+                </div>
+
+                <!-- Rules Management -->
+                <div id="admin-rules" class="admin-section hidden space-y-4">
+                    <div class="flex gap-2 mb-4">
+                        <input type="text" id="new-rule-text" class="flex-1 bg-slate-800 border border-white/10 rounded p-2 text-white" placeholder="Tambah aturan baru...">
+                        <button onclick="addRule()" class="bg-accent-green text-black px-4 py-2 rounded font-bold hover:brightness-110">Tambah</button>
+                    </div>
+                    <div id="admin-rules-list" class="space-y-2">
+                        <!-- Rules list injected here -->
+                    </div>
+                </div>
+
+                <!-- Suggestions Management -->
+                <div id="admin-suggestions" class="admin-section hidden">
+                    <div id="admin-sugg-preview" class="space-y-4">
+                        <!-- Preview injected here -->
+                    </div>
+                    <button onclick="openFullSuggestions()" class="w-full mt-4 bg-blue-600/80 hover:bg-blue-600 text-white py-3 rounded font-bold">Lihat Semua Saran</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FULL SUGGESTIONS PAGE (Simulated) -->
+    <div id="modal-full-sugg" class="modal fixed inset-0 z-[60] bg-[#050510] flex flex-col">
+        <div class="p-4 border-b border-white/10 flex justify-between items-center glass">
+            <h2 class="text-xl font-bold text-white">Semua Saran</h2>
+            <button onclick="closeModal('modal-full-sugg')" class="text-white text-2xl">&times;</button>
+        </div>
+        <div id="full-sugg-list" class="flex-1 overflow-y-auto p-4 space-y-4">
+            <!-- All suggestions -->
+        </div>
+    </div>
+
+    <!-- CONFIRMATION POPUP (Generic) -->
+    <div id="modal-confirm" class="modal fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/80">
+        <div class="modal-content glass-strong w-full max-w-sm rounded-xl p-6 text-center border border-red-500/30">
+            <div class="text-red-500 text-4xl mb-2">⚠️</div>
+            <h3 class="text-xl font-bold text-white mb-2">PERINGATAN</h3>
+            <p id="confirm-msg" class="text-gray-300 mb-6">Menghapus peraturan tidak bisa dibatalkan.</p>
+            <div class="flex flex-col gap-3">
+                <button id="btn-confirm-yes" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded">HAPUS</button>
+                <button onclick="closeModal('modal-confirm')" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded">BATAL</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA STATE ---
+        let websites = JSON.parse(localStorage.getItem('webhub_websites')) || [
+            { id: 1, name: "Google", category: "Tools", url: "https://www.google.com", desc: "Mesin pencari terbesar di dunia.", email: "contact@google.com", image: "https://via.placeholder.com/300x160/1e293b/FFFFFF?text=Google", active: true },
+            { id: 2, name: "YouTube", category: "Entertainment", url: "https://www.youtube.com", desc: "Platform berbagi video.", email: "support@youtube.com", image: "https://via.placeholder.com/300x160/1e293b/FFFFFF?text=YouTube", active: true },
+            { id: 3, name: "Wikipedia", category: "Education", url: "https://www.wikipedia.org", desc: "Ensiklopedia bebas.", email: "info@wikipedia.org", image: "https://via.placeholder.com/300x160/1e293b/FFFFFF?text=Wikipedia", active: true },
+            { id: 4, name: "Twitter", category: "Social", url: "https://twitter.com", desc: "Media sosial berbasis teks.", email: "help@twitter.com", image: "https://via.placeholder.com/300x160/1e293b/FFFFFF?text=Twitter", active: true }
+        ];
+
+        let rules = JSON.parse(localStorage.getItem('webhub_rules')) || [
+            "Dilarang memposting konten berbau SARA.",
+            "Gunakan bahasa yang sopan dan santun.",
+            "Dilarang spam atau promosi berlebihan.",
+            "Admin berhak menghapus konten yang tidak sesuai.",
+            "Hargai sesama pengguna Web Hub."
+        ];
+
+        let suggestions = JSON.parse(localStorage.getItem('webhub_suggestions')) || [];
+
+        let isAdmin = false;
+        let pendingAction = null;
+        let editingId = null;
+
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initMenu();
+            renderWebsites();
+            checkFirstVisit();
+            initForms();
+            initAdmin();
+        });
+
+        function saveData() {
+            localStorage.setItem('webhub_websites', JSON.stringify(websites));
+            localStorage.setItem('webhub_rules', JSON.stringify(rules));
+            localStorage.setItem('webhub_suggestions', JSON.stringify(suggestions));
+        }
+
+        // --- MENU SYSTEM ---
+        function initMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const menuBtn = document.getElementById('menu-btn');
+            const closeBtn = document.getElementById('close-sidebar-btn');
+            let isMenuOpen = false;
+
+            function toggleMenu(state) {
+                isMenuOpen = state;
+                if (state) {
+                    sidebar.classList.remove('-translate-x-full');
+                    overlay.classList.remove('hidden');
+                    setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+                } else {
+                    sidebar.classList.add('-translate-x-full');
+                    overlay.classList.add('opacity-0');
+                    setTimeout(() => overlay.classList.add('hidden'), 300);
+                }
+            }
+
+            menuBtn.onclick = () => toggleMenu(true);
+            closeBtn.onclick = () => toggleMenu(false);
+            overlay.onclick = () => toggleMenu(false);
+
+            // SWIPE LOGIC
+            let touchStartX = 0;
+            let touchEndX = 0;
+
+            document.addEventListener('touchstart', e => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, {passive: true});
+
+            document.addEventListener('touchend', e => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            }, {passive: true});
+
+            function handleSwipe() {
+                const swipeThreshold = 100; // px
+                if (touchEndX - touchStartX > swipeThreshold) {
+                    // Swipe Right -> Open Menu
+                    toggleMenu(true);
+                }
+                if (touchStartX - touchEndX > swipeThreshold) {
+                    // Swipe Left -> Close Menu
+                    if(isMenuOpen) toggleMenu(false);
+                }
+            }
+        }
+
+        // --- MAIN CONTENT & REFRESH ---
+        function renderWebsites(shuffle = true) {
+            const grid = document.getElementById('website-grid');
+            grid.innerHTML = '';
+            
+            // Filter only active websites
+            let displayList = websites.filter(w => w.active);
+
+            // Shuffle algorithm (Fisher-Yates)
+            if (shuffle) {
+                for (let i = displayList.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [displayList[i], displayList[j]] = [displayList[j], displayList[i]];
+                }
+            }
+
+            if (displayList.length === 0) {
+                document.getElementById('empty-state').classList.remove('hidden');
+                return;
+            } else {
+                document.getElementById('empty-state').classList.add('hidden');
+            }
+
+            displayList.forEach(site => {
+                const card = document.createElement('div');
+                card.className = 'glass rounded-xl overflow-hidden hover:shadow-green-500/20 hover:shadow-xl transition-all duration-300 fade-in flex flex-col h-full';
+                card.innerHTML = `
+                    <div class="h-32 bg-slate-800 relative overflow-hidden group">
+                        <img src="${site.image}" alt="${site.name}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        <div class="absolute top-2 right-2 bg-black/60 text-xs px-2 py-1 rounded text-gold border border-gold/30">
+                            ${site.category}
+                        </div>
+                    </div>
+                    <div class="p-4 flex-1 flex flex-col">
+                        <h3 class="text-lg font-bold text-white mb-1">${site.name}</h3>
+                        <p class="text-sm text-gray-400 mb-4 flex-1 line-clamp-3">${site.desc}</p>
+                        <a href="${site.url}" target="_blank" rel="noopener noreferrer" class="block w-full text-center bg-white/5 hover:bg-white/10 border border-white/10 text-accent-green font-semibold py-2 rounded transition">
+                            Kunjungi ↗
+                        </a>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        document.getElementById('refresh-btn').addEventListener('click', () => {
+            const btn = document.getElementById('refresh-btn');
+            btn.classList.add('rotate-180');
+            
+            // Fade out grid
+            const grid = document.getElementById('website-grid');
+            grid.style.opacity = '0';
+            
+            setTimeout(() => {
+                renderWebsites(true);
+                grid.style.opacity = '1';
+                btn.classList.remove('rotate-180');
+            }, 300);
+        });
+
+        // --- RULES POPUP ---
+        function checkFirstVisit() {
+            const hasSeen = localStorage.getItem('webhub_has_seen_rules');
+            if (!hasSeen) {
+                openRules();
+            }
+        }
+
+        function openRules() {
+            // Close sidebar if open
+            const sidebar = document.getElementById('sidebar');
+            if (!sidebar.classList.contains('-translate-x-full')) {
+                document.getElementById('menu-btn').click(); // Toggle it closed
+            }
+
+            const container = document.getElementById('rules-container');
+            container.innerHTML = '';
+            
+            rules.forEach((rule, index) => {
+                const div = document.createElement('div');
+                div.className = 'bg-white/5 border border-white/10 p-6 rounded-xl flex items-center justify-center min-h-[150px] text-center';
+                div.innerHTML = `<p class="text-lg text-gray-200 font-medium">"${rule}"</p>`;
+                container.appendChild(div);
+            });
+
+            openModal('modal-rules');
+        }
+
+        function closeRules() {
+            localStorage.setItem('webhub_has_seen_rules', 'true');
+            closeModal('modal-rules');
+        }
+
+        // --- SUBMIT WEBSITE ---
+        function openSubmitWeb(editWebId = null) {
+            document.getElementById('close-sidebar-btn').click();
+            const form = document.getElementById('submit-form');
+            form.reset();
+            
+            const title = document.querySelector('#modal-submit h3');
+            const btn = document.getElementById('btn-submit-web');
+
+            if (editWebId) {
+                editingId = editWebId;
+                const w = websites.find(x => x.id === editWebId);
+                if (w) {
+                    document.getElementById('sub-name').value = w.name;
+                    document.getElementById('sub-cat').value = w.category;
+                    document.getElementById('sub-url').value = w.url;
+                    document.getElementById('sub-desc').value = w.desc;
+                    document.getElementById('sub-email').value = w.email;
+                    title.textContent = "Edit Website";
+                    btn.textContent = "UPDATE";
+                }
+            } else {
+                editingId = null;
+                title.textContent = "Submit Website";
+                btn.textContent = "SUBMIT";
+            }
+
+            validateSubmitForm();
+            openModal('modal-submit');
+        }
+
+        function validateSubmitForm() {
+            const inputs = ['sub-name', 'sub-url', 'sub-desc', 'sub-email'];
+            const fileInput = document.getElementById('sub-img');
+            const submitBtn = document.getElementById('btn-submit-web');
+            
+            // Allow update without re-uploading image
+            const isEdit = editingId !== null;
+            const hasImage = fileInput.files.length > 0 || isEdit;
+            const isValid = inputs.every(id => document.getElementById(id).value.trim() !== '') && hasImage;
+            
+            if (isValid) {
+                submitBtn.disabled = false;
+                submitBtn.className = 'w-full py-3 rounded-lg font-bold text-center transition bg-accent-green text-black hover:brightness-110 cursor-pointer shadow-lg shadow-green-500/20';
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.className = 'w-full py-3 rounded-lg font-bold text-center transition bg-gray-600 text-gray-300 cursor-not-allowed';
+            }
+        }
+
+        function initForms() {
+            // SUBMIT FORM LISTENERS
+            const inputs = ['sub-name', 'sub-url', 'sub-desc', 'sub-email'];
+            const fileInput = document.getElementById('sub-img');
+            const submitBtn = document.getElementById('btn-submit-web');
+            
+            inputs.forEach(id => document.getElementById(id).addEventListener('input', validateSubmitForm));
+            fileInput.addEventListener('change', validateSubmitForm);
+
+            submitBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (submitBtn.disabled) return;
+                
+                const name = document.getElementById('sub-name').value;
+                const cat = document.getElementById('sub-cat').value;
+                const url = document.getElementById('sub-url').value;
+                const desc = document.getElementById('sub-desc').value;
+                const email = document.getElementById('sub-email').value;
+                
+                if (editingId) {
+                    // Update Logic
+                    const w = websites.find(x => x.id === editingId);
+                    if (w) {
+                        w.name = name;
+                        w.category = cat;
+                        w.url = url;
+                        w.desc = desc;
+                        w.email = email;
+                        if (fileInput.files.length > 0) {
+                            w.image = "https://via.placeholder.com/300x160/1e293b/FFFFFF?text=" + encodeURIComponent(name); // Mock upload
+                        }
+                        saveData();
+                        renderWebsites(false);
+                        if(isAdmin) renderAdminWebsites();
+                        alert('Website berhasil diupdate!');
+                    }
+                } else {
+                    // Create Logic
+                    const newWeb = {
+                        id: Date.now(),
+                        name,
+                        category: cat,
+                        url,
+                        desc,
+                        email,
+                        image: "https://via.placeholder.com/300x160/1e293b/FFFFFF?text=" + encodeURIComponent(name),
+                        active: true
+                    };
+                    websites.push(newWeb);
+                    saveData();
+                    renderWebsites(false);
+                    if(isAdmin) renderAdminWebsites();
+                    alert('Website berhasil disubmit!');
+                }
+
+                closeModal('modal-submit');
+            });
+
+            // SUGGESTION FORM
+            const suggText = document.getElementById('sugg-text');
+            const suggBtn = document.getElementById('btn-submit-sugg');
+            const charCount = document.getElementById('char-count');
+
+            suggText.addEventListener('input', () => {
+                const len = suggText.value.length;
+                charCount.textContent = len;
+                if (len >= 100 && len <= 3000) {
+                    charCount.classList.remove('text-red-500');
+                    charCount.classList.add('text-green-400');
+                    suggBtn.disabled = false;
+                    suggBtn.className = 'w-full bg-accent-green text-black py-2 rounded-lg font-bold transition shadow-lg cursor-pointer hover:brightness-110';
+                } else {
+                    charCount.classList.add('text-red-500');
+                    charCount.classList.remove('text-green-400');
+                    suggBtn.disabled = true;
+                    suggBtn.className = 'w-full bg-gray-600 text-gray-300 py-2 rounded-lg font-bold transition cursor-not-allowed';
+                }
+            });
+
+            suggBtn.addEventListener('click', () => {
+                if(suggBtn.disabled) return;
+                suggestions.push({
+                    id: Date.now(),
+                    text: suggText.value,
+                    date: new Date().toLocaleDateString()
+                });
+                saveData();
+                closeModal('modal-suggestion');
+                alert('Terima kasih atas saran Anda!');
+                suggText.value = '';
+            });
+        }
+
+        function openSuggestionBox() {
+            document.getElementById('close-sidebar-btn').click();
+            openModal('modal-suggestion');
+        }
+
+        // --- ADMIN SYSTEM ---
+        function openAdminLogin() {
+            document.getElementById('close-sidebar-btn').click();
+            if (isAdmin) {
+                openModal('modal-admin');
+                renderAdminWebsites();
+            } else {
+                openModal('modal-login');
+            }
+        }
+
+        function initAdmin() {
+            const passInput = document.getElementById('admin-pass');
+            const loginBtn = document.getElementById('btn-login');
+            const togglePass = document.getElementById('toggle-pass');
+
+            passInput.addEventListener('input', () => {
+                if (passInput.value.length > 0) {
+                    loginBtn.disabled = false;
+                    loginBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                } else {
+                    loginBtn.disabled = true;
+                    loginBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+            });
+
+            togglePass.addEventListener('click', () => {
+                passInput.type = passInput.type === 'password' ? 'text' : 'password';
+            });
+
+            loginBtn.addEventListener('click', () => {
+                if (passInput.value === 'Thekingteam') {
+                    isAdmin = true;
+                    passInput.value = '';
+                    closeModal('modal-login');
+                    openModal('modal-admin');
+                    renderAdminWebsites();
+                } else {
+                    alert('Password Salah!');
+                    passInput.value = '';
+                }
+            });
+        }
+
+        function switchAdminTab(tab) {
+            document.querySelectorAll('.admin-section').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.admin-tab').forEach(el => {
+                el.classList.remove('border-b-2', 'border-gold', 'bg-white/5', 'text-white');
+                el.classList.add('text-gray-400');
+            });
+            
+            document.getElementById(`admin-${tab}`).classList.remove('hidden');
+            
+            // Highlight active tab (simple logic based on click event source would be better but this works)
+            const activeBtn = Array.from(document.querySelectorAll('.admin-tab')).find(b => b.textContent.toLowerCase().includes(tab === 'websites' ? 'web' : (tab === 'rules' ? 'rul' : 'sar')));
+            if(activeBtn) {
+                activeBtn.classList.add('border-b-2', 'border-gold', 'bg-white/5', 'text-white');
+                activeBtn.classList.remove('text-gray-400');
+            }
+
+            if(tab === 'websites') renderAdminWebsites();
+            if(tab === 'rules') renderAdminRules();
+            if(tab === 'suggestions') renderAdminSuggestions();
+        }
+
+        function renderAdminWebsites() {
+            const container = document.getElementById('admin-websites');
+            container.innerHTML = '';
+            websites.forEach(w => {
+                const div = document.createElement('div');
+                div.className = 'glass p-4 rounded flex flex-col md:flex-row justify-between items-start md:items-center gap-4';
+                div.innerHTML = `
+                    <div class="flex-1">
+                        <div class="font-bold text-white text-lg">${w.name} <span class="text-xs bg-gray-700 px-2 py-1 rounded ml-2">${w.category}</span></div>
+                        <div class="text-sm text-gray-400 truncate max-w-xs">${w.url}</div>
+                        <div class="text-xs text-gold mt-1">Pub: ${w.email}</div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="toggleActiveWeb(${w.id})" class="px-3 py-1 rounded font-bold text-xs ${w.active ? 'bg-green-900 text-green-300 border border-green-500' : 'bg-red-900 text-red-300 border border-red-500'}">
+                            ${w.active ? 'Active' : 'Disabled'}
+                        </button>
+                        <button onclick="editWeb(${w.id})" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded text-xs font-bold">Edit</button>
+                        <button onclick="deleteWeb(${w.id})" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded text-xs font-bold">Hapus</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function toggleActiveWeb(id) {
+            const w = websites.find(x => x.id === id);
+            if(w) {
+                w.active = !w.active;
+                saveData();
+                renderAdminWebsites();
+                renderWebsites(false); // Update main view
+            }
+        }
+
+        function deleteWeb(id) {
+            if(confirm('Hapus website ini?')) {
+                websites = websites.filter(w => w.id !== id);
+                saveData();
+                renderAdminWebsites();
+                renderWebsites(false);
+            }
+        }
+
+        function editWeb(id) {
+            openSubmitWeb(id);
+        }
+
+        // --- ADMIN RULES ---
+        function renderAdminRules() {
+            const list = document.getElementById('admin-rules-list');
+            list.innerHTML = '';
+            rules.forEach((r, idx) => {
+                const item = document.createElement('div');
+                item.className = 'bg-slate-800 p-3 rounded flex justify-between items-center border border-white/5';
+                item.innerHTML = `
+                    <span class="text-gray-300 text-sm flex-1 mr-4">${r}</span>
+                    <div class="flex gap-2">
+                        <button onclick="editRule(${idx})" class="text-blue-400 text-xs hover:underline">Edit</button>
+                        <button onclick="confirmDeleteRule(${idx})" class="text-red-400 text-xs hover:underline">Hapus</button>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function addRule() {
+            const input = document.getElementById('new-rule-text');
+            if(input.value.trim()) {
+                rules.push(input.value.trim());
+                saveData();
+                input.value = '';
+                renderAdminRules();
+            }
+        }
+
+        function editRule(idx) {
+            const newText = prompt("Edit Peraturan:", rules[idx]);
+            if(newText !== null && newText.trim() !== "") {
+                rules[idx] = newText.trim();
+                saveData();
+                renderAdminRules();
+            }
+        }
+
+        function confirmDeleteRule(idx) {
+            pendingAction = () => {
+                rules.splice(idx, 1);
+                saveData();
+                renderAdminRules();
+                closeModal('modal-confirm');
+            };
+            openModal('modal-confirm');
+        }
+
+        document.getElementById('btn-confirm-yes').addEventListener('click', () => {
+            if(pendingAction) pendingAction();
+        });
+
+        // --- ADMIN SUGGESTIONS ---
+        function renderAdminSuggestions() {
+            const preview = document.getElementById('admin-sugg-preview');
+            preview.innerHTML = '';
+            
+            const list = suggestions.slice().reverse().slice(0, 3); // Last 3
+            if(list.length === 0) {
+                preview.innerHTML = '<p class="text-gray-500 text-center">Belum ada saran.</p>';
+                return;
+            }
+
+            list.forEach(s => {
+                const item = document.createElement('div');
+                item.className = 'bg-slate-800 p-3 rounded border border-white/5';
+                item.innerHTML = `
+                    <p class="text-gray-300 text-sm italic mb-2">"${s.text.substring(0, 100)}..."</p>
+                    <div class="text-xs text-gray-500 text-right">${s.date}</div>
+                `;
+                preview.appendChild(item);
+            });
+        }
+
+        function openFullSuggestions() {
+            const list = document.getElementById('full-sugg-list');
+            list.innerHTML = '';
+            suggestions.slice().reverse().forEach(s => {
+                const item = document.createElement('div');
+                item.className = 'glass p-4 rounded';
+                item.innerHTML = `
+                    <p class="text-gray-200 mb-2 whitespace-pre-wrap">${s.text}</p>
+                    <div class="text-xs text-gray-500 text-right border-t border-white/5 pt-2">${s.date}</div>
+                `;
+                list.appendChild(item);
+            });
+            openModal('modal-full-sugg');
+        }
+
+        // --- UTILS ---
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+            pendingAction = null;
+        }
+
+        // Close modal on outside click (optional but good UX)
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if(e.target === modal && modal.id !== 'modal-rules') { // Rules modal force click button
+                   // closeModal(modal.id); // Disabled to strictly follow requirements if needed, but usually good.
+                   // Let's keep specific close buttons as primary method to prevent accidental closes on forms.
+                   if(modal.id === 'modal-login' || modal.id === 'modal-full-sugg') closeModal(modal.id);
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
